@@ -1,5 +1,6 @@
 name: ${name}
 version: ${version}
 description: ${description}
+api-version: 1.21.11
 author: MrCubee
 main: fr.mrcubee.vanilla.CubeeVanillaPlugin

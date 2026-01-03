@@ -9,6 +9,7 @@ public class BlockBreakListener implements Listener {
 
     @EventHandler
     public void event(final BlockBreakEvent event) {
-        Timber.executePlayer(event.getPlayer(), event.getBlock());
+        if (Timber.executePlayer(event.getPlayer(), event.getBlock()))
+            event.setCancelled(true);
     }
 }

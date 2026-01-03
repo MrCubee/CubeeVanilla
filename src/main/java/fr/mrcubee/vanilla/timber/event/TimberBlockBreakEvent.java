@@ -14,6 +14,7 @@ public class TimberBlockBreakEvent extends BlockExpEvent implements Cancellable 
 
     public TimberBlockBreakEvent(final Block block, final Player player, final ItemStack itemStack) {
         super(block, 0);
+        this.cancelled = false;
         this.player = player;
         this.itemStack = itemStack;
     }

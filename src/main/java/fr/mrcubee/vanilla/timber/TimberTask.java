@@ -27,7 +27,7 @@ public abstract class TimberTask {
         this(task.player, task.itemStack, task.blockToDestroy);
     }
 
-    public abstract boolean update();
+    protected abstract boolean update();
 
     public abstract TimberTask newTask();
 
