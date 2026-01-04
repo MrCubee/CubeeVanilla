@@ -4,7 +4,7 @@ plugins {
 
 group = 'fr.mrcubee'
 version = '1.0'
-description = 'Vanilla plugin'
+description = 'A lightweight suite of balanced Quality of Life (QoL) mechanics, including Timber and Vein Miner, designed to enhance survival without breaking vanilla immersion.'
 
 repositories {
     mavenCentral()
