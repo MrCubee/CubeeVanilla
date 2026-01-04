@@ -11,10 +11,14 @@
     public class ItemStackNMS {
 
         public static boolean mineBlock(final Player player, final Block block, final ItemStack itemStack) {
-            final CraftPlayer craftPlayer = (CraftPlayer) player;
-            final CraftBlock craftBlock = (CraftBlock) block;
+            final CraftPlayer craftPlayer;
+            final CraftBlock craftBlock;
             final net.minecraft.world.item.ItemStack nmsItemStack;
 
+            if (player == null || block == null || itemStack == null)
+                return false;
+            craftPlayer = (CraftPlayer) player;
+            craftBlock = (CraftBlock) block;
             if (itemStack != null) {
                 nmsItemStack = CraftItemStack.asNMSCopy(itemStack);
                 nmsItemStack.a(((CraftWorld) block.getWorld()).getHandle(), craftBlock.getNMS(), craftBlock.getPosition(), craftPlayer.getHandle());

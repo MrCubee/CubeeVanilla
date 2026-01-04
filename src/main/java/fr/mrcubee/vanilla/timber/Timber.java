@@ -8,9 +8,11 @@ import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
@@ -19,23 +21,27 @@ public class Timber {
 
     protected static final int QUEUE_SIZE_LIMIT = 1000;
 
-    private static final BlockBreakListener BLOCK_BREAK_LISTENER = new BlockBreakListener();
-    private static final PlayerQuitListener PLAYER_QUIT_LISTENER = new PlayerQuitListener();
+    private static final Listener[] LISTENERS = new Listener[]{
+            new BlockBreakListener(),
+            new PlayerQuitListener()
+    };
 
     private static BukkitTask timberUpdateTask;
     private static final Map<Player, TimberTask> PLAYER_TASK = new HashMap<Player, TimberTask>();
 
     public static void enable(final CubeeVanillaPlugin cubeeVanillaPlugin) {
+        final PluginManager pluginManager = Bukkit.getPluginManager();
+
         Bukkit.getScheduler().runTaskTimer(cubeeVanillaPlugin, Timber::update, 0L, 0L);
-        Bukkit.getPluginManager().registerEvents(BLOCK_BREAK_LISTENER, cubeeVanillaPlugin);
-        Bukkit.getPluginManager().registerEvents(PLAYER_QUIT_LISTENER, cubeeVanillaPlugin);
+        for (final Listener listener : LISTENERS)
+            pluginManager.registerEvents(listener, cubeeVanillaPlugin);
     }
 
     public static void disable(final CubeeVanillaPlugin cubeeVanillaPlugin) {
         Timber.timberUpdateTask.cancel();
         Timber.timberUpdateTask = null;
-        BlockBreakEvent.getHandlerList().unregister(BLOCK_BREAK_LISTENER);
-        PlayerQuitEvent.getHandlerList().unregister(PLAYER_QUIT_LISTENER);
+        BlockBreakEvent.getHandlerList().unregister(LISTENERS[0]);
+        PlayerQuitEvent.getHandlerList().unregister(LISTENERS[1]);
     }
 
     public static boolean executePlayer(final Player player, final Block block) {
