@@ -19,7 +19,7 @@ import java.util.*;
 
 public class Timber {
 
-    protected static final int QUEUE_SIZE_LIMIT = 1000;
+    protected static final int QUEUE_SIZE_LIMIT = 4000;
 
     private static final Listener[] LISTENERS = new Listener[]{
             new BlockBreakListener(),

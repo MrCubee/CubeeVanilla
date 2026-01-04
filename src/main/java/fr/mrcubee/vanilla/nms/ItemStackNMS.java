@@ -15,7 +15,7 @@
             final CraftBlock craftBlock;
             final net.minecraft.world.item.ItemStack nmsItemStack;
 
-            if (player == null || block == null || itemStack == null)
+            if (player == null || block == null)
                 return false;
             craftPlayer = (CraftPlayer) player;
             craftBlock = (CraftBlock) block;
