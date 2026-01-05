@@ -19,7 +19,7 @@ public class CubeeVanillaPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        Timber.disable(this);
-        Miner.disable(this);
+        Timber.disable();
+        Miner.disable();
     }
 }

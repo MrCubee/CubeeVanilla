@@ -1,6 +1,7 @@
 package fr.mrcubee.vanilla.timber;
 
 import fr.mrcubee.vanilla.CubeeVanillaPlugin;
+import fr.mrcubee.vanilla.task.PlayerTickSingleExecutor;
 import fr.mrcubee.vanilla.timber.listener.BlockBreakListener;
 import fr.mrcubee.vanilla.timber.listener.PlayerQuitListener;
 import org.bukkit.Bukkit;
@@ -13,9 +14,6 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.PluginManager;
-import org.bukkit.scheduler.BukkitTask;
-
-import java.util.*;
 
 public class Timber {
 
@@ -26,20 +24,21 @@ public class Timber {
             new PlayerQuitListener()
     };
 
-    private static BukkitTask timberUpdateTask;
-    private static final Map<Player, TimberTask> PLAYER_TASK = new HashMap<Player, TimberTask>();
+    private static final PlayerTickSingleExecutor PLAYER_TASK_EXECUTOR = new PlayerTickSingleExecutor();
 
     public static void enable(final CubeeVanillaPlugin cubeeVanillaPlugin) {
-        final PluginManager pluginManager = Bukkit.getPluginManager();
+        final PluginManager pluginManager;
 
-        Bukkit.getScheduler().runTaskTimer(cubeeVanillaPlugin, Timber::update, 0L, 0L);
+        if (cubeeVanillaPlugin == null)
+            return;
+        pluginManager = Bukkit.getPluginManager();
         for (final Listener listener : LISTENERS)
             pluginManager.registerEvents(listener, cubeeVanillaPlugin);
+        Timber.PLAYER_TASK_EXECUTOR.start(cubeeVanillaPlugin);
     }
 
-    public static void disable(final CubeeVanillaPlugin cubeeVanillaPlugin) {
-        Timber.timberUpdateTask.cancel();
-        Timber.timberUpdateTask = null;
+    public static void disable() {
+        Timber.PLAYER_TASK_EXECUTOR.stop();
         BlockBreakEvent.getHandlerList().unregister(LISTENERS[0]);
         PlayerQuitEvent.getHandlerList().unregister(LISTENERS[1]);
     }
@@ -54,14 +53,13 @@ public class Timber {
         blockType = block.getType();
         if (!player.isSneaking())
             return false;
-        if (Timber.PLAYER_TASK.containsKey(player))
-            return false;
         if (itemStack == null || !itemStack.getType().name().endsWith("_AXE"))
             return false;
         if (!Tag.LOGS.isTagged(blockType) && !Tag.LEAVES.isTagged(blockType) && !Tag.WART_BLOCKS.isTagged(blockType))
             return false;
+        if (!Timber.PLAYER_TASK_EXECUTOR.submit(new TimberSearchTask(player, itemStack, block)))
+            return false;
         player.getInventory().setItemInMainHand(null);
-        Timber.PLAYER_TASK.put(player, new TimberSearchTask(player, itemStack, block));
         return true;
     }
 
@@ -70,32 +68,8 @@ public class Timber {
 
         if (player == null)
             return null;
-        task = Timber.PLAYER_TASK.remove(player);
-        return task != null ? task.itemStack : null;
+        task = (TimberTask) Timber.PLAYER_TASK_EXECUTOR.cancel(player);
+        return task != null ? task.getItemStack() : null;
     }
 
-    private static void update() {
-        final Iterator<Map.Entry<Player, TimberTask>> iterator;
-        Map.Entry<Player, TimberTask> entry;
-        TimberTask timberTask;
-        TimberTask newTask;
-
-        if (Timber.PLAYER_TASK.isEmpty())
-            return;
-        iterator = Timber.PLAYER_TASK.entrySet().iterator();
-        while (iterator.hasNext()) {
-            entry = iterator.next();
-            timberTask = entry.getValue();
-            if (timberTask == null) {
-                iterator.remove();
-                continue;
-            }
-            if (!timberTask.update())
-                continue;
-            newTask = timberTask.newTask();
-            if (newTask == null)
-                iterator.remove();
-            entry.setValue(newTask);
-        }
-    }
 }

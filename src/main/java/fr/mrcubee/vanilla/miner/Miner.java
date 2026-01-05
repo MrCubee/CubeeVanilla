@@ -4,6 +4,7 @@ import fr.mrcubee.vanilla.CubeeVanillaPlugin;
 import fr.mrcubee.vanilla.miner.listener.BlockBreakListener;
 import fr.mrcubee.vanilla.miner.listener.PlayerInteractListener;
 import fr.mrcubee.vanilla.miner.listener.PlayerQuitListener;
+import fr.mrcubee.vanilla.task.PlayerTickSingleExecutor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -24,28 +25,35 @@ import java.util.Map;
 
 public class Miner {
 
+    private static final int SELECTION_TIMEOUT = 300000;
+
     private static final Listener[] LISTENERS = new Listener[] {
             new BlockBreakListener(),
             new PlayerInteractListener(),
             new PlayerQuitListener()
     };
 
-    private static BukkitTask timberUpdateTask;
+    private static BukkitTask timberTimeoutTask;
+    private static final PlayerTickSingleExecutor PLAYER_TASK_EXECUTOR = new PlayerTickSingleExecutor();
     private static final Map<Player, Long> PLAYER_SELECTION_TIMEOUT = new HashMap<Player, Long>();
     private static final Map<Player, Selection> PLAYER_SELECTION = new HashMap<Player, Selection>();
-    private static final Map<Player, MinerTask> PLAYER_TASK = new HashMap<Player, MinerTask>();
 
     public static void enable(final CubeeVanillaPlugin cubeeVanillaPlugin) {
-        final PluginManager pluginManager = Bukkit.getPluginManager();
+        final PluginManager pluginManager;
 
-        Bukkit.getScheduler().runTaskTimer(cubeeVanillaPlugin, Miner::update, 0L, 0L);
+        if (cubeeVanillaPlugin == null)
+            return;
+        pluginManager = Bukkit.getPluginManager();
+        Miner.timberTimeoutTask = Bukkit.getScheduler().runTaskTimer(cubeeVanillaPlugin, Miner::tick, 0L, 0L);
+        Miner.PLAYER_TASK_EXECUTOR.start(cubeeVanillaPlugin);
         for (final Listener listener : LISTENERS)
             pluginManager.registerEvents(listener, cubeeVanillaPlugin);
     }
 
-    public static void disable(final CubeeVanillaPlugin cubeeVanillaPlugin) {
-        Miner.timberUpdateTask.cancel();
-        Miner.timberUpdateTask = null;
+    public static void disable() {
+        Miner.timberTimeoutTask.cancel();
+        Miner.timberTimeoutTask = null;
+        Miner.PLAYER_TASK_EXECUTOR.stop();
         BlockBreakEvent.getHandlerList().unregister(LISTENERS[0]);
         PlayerInteractEvent.getHandlerList().unregister(LISTENERS[1]);
         PlayerQuitEvent.getHandlerList().unregister(LISTENERS[2]);
@@ -66,12 +74,12 @@ public class Miner {
         switch (action) {
             case RIGHT_CLICK_BLOCK:
                 selection.setRightPos(block.getLocation());
-                Miner.PLAYER_SELECTION_TIMEOUT.put(player, System.currentTimeMillis() + 5000);
+                Miner.PLAYER_SELECTION_TIMEOUT.put(player, System.currentTimeMillis() + SELECTION_TIMEOUT);
                 player.sendMessage(ChatColor.GRAY + "Right pos set.");
                 break;
             case LEFT_CLICK_BLOCK:
                 selection.setLeftPos(block.getLocation());
-                Miner.PLAYER_SELECTION_TIMEOUT.put(player, System.currentTimeMillis() + 5000);
+                Miner.PLAYER_SELECTION_TIMEOUT.put(player, System.currentTimeMillis() + SELECTION_TIMEOUT);
                 player.sendMessage(ChatColor.GRAY + "Left pos set.");
                 break;
         }
@@ -95,16 +103,15 @@ public class Miner {
         itemStack = player.getInventory().getItemInMainHand();
         if (!player.isSneaking())
             return false;
-        if (Miner.PLAYER_TASK.containsKey(player))
-            return false;
         if (itemStack == null || !itemStack.getType().name().endsWith("_PICKAXE"))
             return false;
         selection = Miner.PLAYER_SELECTION.get(player);
         if (selection == null || !selection.isReady() || !selection.isInside(block.getLocation()))
             return false;
+        if (!Miner.PLAYER_TASK_EXECUTOR.submit(new MinerTask(player, itemStack, selection.getBlocks())))
+            return false;
         player.getInventory().setItemInMainHand(null);
         resetSelection(player);
-        Miner.PLAYER_TASK.put(player, new MinerTask(player, itemStack, selection.getBlocks()));
         return true;
     }
 
@@ -113,35 +120,16 @@ public class Miner {
 
         if (player == null)
             return null;
-        Miner.PLAYER_SELECTION.remove(player);
-        task = Miner.PLAYER_TASK.remove(player);
-        return task != null ? task.itemStack : null;
+        task = (MinerTask) Miner.PLAYER_TASK_EXECUTOR.cancel(player);
+        return task != null ? task.getItemStack() : null;
     }
 
-    private static void minerUpdate() {
-        final Iterator<Map.Entry<Player, MinerTask>> iterator;
-        Map.Entry<Player, MinerTask> entry;
-        MinerTask minerTask;
-
-        if (Miner.PLAYER_TASK.isEmpty())
-            return;
-        iterator = Miner.PLAYER_TASK.entrySet().iterator();
-        while (iterator.hasNext()) {
-            entry = iterator.next();
-            minerTask = entry.getValue();
-            if (minerTask == null || minerTask.update()) {
-                iterator.remove();
-                minerTask.finish();
-            }
-        }
-    }
-
-    private static void selectTimeoutUpdate() {
+    private static void tick() {
         final Iterator<Map.Entry<Player, Long>> iterator;
         Map.Entry<Player, Long> entry;
         Long timeout;
 
-        if (Miner.PLAYER_TASK.isEmpty())
+        if (Miner.PLAYER_SELECTION_TIMEOUT.isEmpty())
             return;
         iterator = Miner.PLAYER_SELECTION_TIMEOUT.entrySet().iterator();
         while (iterator.hasNext()) {
@@ -154,8 +142,4 @@ public class Miner {
         }
     }
 
-    private static void update() {
-        minerUpdate();
-        selectTimeoutUpdate();
-    }
 }

@@ -1,5 +1,6 @@
 package fr.mrcubee.vanilla.timber;
 
+import fr.mrcubee.vanilla.task.PlayerTask;
 import fr.mrcubee.vanilla.utils.PlayerUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -33,7 +34,8 @@ public class TimberSearchTask extends TimberTask {
         this.blocksToProcess.offer(block);
     }
 
-    private boolean search() {
+    @Override
+    protected boolean update() {
         final Block block = this.blocksToProcess.poll();
         final Material blockMaterial;
         final boolean isLeaves;
@@ -61,15 +63,7 @@ public class TimberSearchTask extends TimberTask {
     }
 
     @Override
-    protected boolean update() {
-        boolean remove = false;
-
-        for (int i = 0; i < 10 && !(remove = search()); ++i);
-        return remove;
-    }
-
-    @Override
-    public TimberTask newTask() {
+    protected PlayerTask onComplete() {
         for (final Block block : this.blockToDestroy)
             this.player.sendBlockChange(block.getLocation(), Bukkit.createBlockData(block.getType()));
         if (this.tree)
@@ -77,4 +71,5 @@ public class TimberSearchTask extends TimberTask {
         PlayerUtils.giveItem(this.player, this.itemStack);
         return null;
     }
+
 }

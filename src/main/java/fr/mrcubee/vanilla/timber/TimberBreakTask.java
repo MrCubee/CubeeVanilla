@@ -1,6 +1,7 @@
 package fr.mrcubee.vanilla.timber;
 
 import fr.mrcubee.vanilla.nms.ItemStackNMS;
+import fr.mrcubee.vanilla.task.PlayerTask;
 import fr.mrcubee.vanilla.timber.event.TimberBlockBreakEvent;
 import fr.mrcubee.vanilla.utils.PlayerUtils;
 import org.bukkit.*;
@@ -15,7 +16,8 @@ public class TimberBreakTask extends TimberTask {
         this.itemBroken = false;
     }
 
-    private boolean breakTree() {
+    @Override
+    protected boolean update() {
         final Block block = this.blockToDestroy.poll();
         final Material blockType;
         final TimberBlockBreakEvent event;
@@ -41,18 +43,11 @@ public class TimberBreakTask extends TimberTask {
     }
 
     @Override
-    protected boolean update() {
-        boolean remove = false;
-
-        for (int i = 0; i < 10 && !(remove = breakTree()); ++i);
-        return remove;
-    }
-
-    @Override
-    public TimberTask newTask() {
+    protected PlayerTask onComplete() {
         if (this.itemBroken)
             return null;
         PlayerUtils.giveItem(this.player, this.itemStack);
         return null;
     }
+
 }

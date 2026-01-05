@@ -1,5 +1,6 @@
 package fr.mrcubee.vanilla.timber;
 
+import fr.mrcubee.vanilla.task.PlayerItemTask;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -7,15 +8,12 @@ import org.bukkit.inventory.ItemStack;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
-public abstract class TimberTask {
+public abstract class TimberTask extends PlayerItemTask {
 
-    protected final Player player;
-    protected final ItemStack itemStack;
     protected final Queue<Block> blockToDestroy;
 
     protected TimberTask(final Player player, final ItemStack itemStack, final Queue<Block> blockToDestroy) {
-        this.player = player;
-        this.itemStack = itemStack;
+        super(player, itemStack);
         this.blockToDestroy = blockToDestroy;
     }
 
@@ -27,8 +25,8 @@ public abstract class TimberTask {
         this(task.player, task.itemStack, task.blockToDestroy);
     }
 
-    protected abstract boolean update();
-
-    public abstract TimberTask newTask();
+    protected ItemStack getItemStack() {
+        return this.itemStack;
+    }
 
 }
