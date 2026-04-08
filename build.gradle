@@ -1,27 +1,51 @@
-plugins {
-    id 'java'
-}
+allprojects {
+    apply plugin: 'java'
+    group = 'fr.mrcubee'
+    version = '1.1'
+    description = 'A lightweight suite of balanced Quality of Life (QoL) mechanics, including Timber and Vein Miner, designed to enhance survival without breaking vanilla immersion.'
 
-group = 'fr.mrcubee'
-version = '1.0'
-description = 'A lightweight suite of balanced Quality of Life (QoL) mechanics, including Timber and Vein Miner, designed to enhance survival without breaking vanilla immersion.'
-
-repositories {
-    mavenCentral()
-    maven {
-        url = 'https://hub.spigotmc.org/nexus/content/groups/public/'
-
-        content {
-            includeGroup 'org.bukkit'
-            includeGroup 'org.spigotmc'
-        }
+    repositories {
+        mavenCentral()
+        maven {
+            url = 'https://hub.spigotmc.org/nexus/content/groups/public/'
+            
+            content {
+                includeGroup 'org.bukkit'
+                includeGroup 'org.spigotmc'
+                }
+            }
+        mavenLocal()
     }
-    mavenLocal()
+
+    ext.getGitInfo = {
+        if (ext.has('gitInfoCache')) return ext.gitInfoCache
+
+        def run = {List<String> cmd ->
+            try {
+                def process = new ProcessBuilder(cmd).directory(rootDir).redirectErrorStream(true).start()
+
+                process.waitFor()
+                return process.inputStream.text.trim()
+            } catch (ignored) { return '' }
+        }
+
+        def commit = run(['git','rev-parse','--short=8','HEAD'])
+        def dirty  = run(['git','status','--porcelain'])
+        def branch = run(['git','rev-parse','--abbrev-ref','HEAD'])
+
+        ext.gitInfoCache = [
+                commit: commit ?: 'unknown',
+                branch: branch ?: 'unknown',
+                dirty : dirty ? '-dirty' : ''
+        ]
+        ext.gitInfoCache
+    }
 }
 
 dependencies {
-    compileOnly 'org.spigotmc:spigot-api:1.21.11-R0.1-SNAPSHOT'
-    compileOnly 'org.spigotmc:spigot:1.21.11-R0.1-SNAPSHOT'
+    implementation project(':cubee-vanilla-core')
+    implementation project(':cubee-vanilla-nms')
+    implementation project(':cubee-vanilla-nms-1.21.11')
 }
 
 jar {
@@ -31,40 +55,4 @@ jar {
     }
 
     exclude "**/META-INF/**"
-}
-
-ext.getGitInfo = {
-    if (ext.has('gitInfoCache')) return ext.gitInfoCache
-
-    def run = {List<String> cmd ->
-        try {
-            def process = new ProcessBuilder(cmd).directory(rootDir).redirectErrorStream(true).start()
-
-            process.waitFor()
-            return process.inputStream.text.trim()
-        } catch (ignored) { return '' }
-    }
-
-    def commit = run(['git','rev-parse','--short=8','HEAD'])
-    def dirty  = run(['git','status','--porcelain'])
-    def branch = run(['git','rev-parse','--abbrev-ref','HEAD'])
-
-    ext.gitInfoCache = [
-            commit: commit ?: 'unknown',
-            branch: branch ?: 'unknown',
-            dirty : dirty ? '-dirty' : ''
-    ]
-    ext.gitInfoCache
-}
-
-processResources {
-    def git = rootProject.ext.getGitInfo()
-
-    filesMatching('plugin.yml') {
-        expand(
-                name: 'CubeeVanilla',
-                description: project.description,
-                version: "${project.version}+${git.branch}-${git.commit}${git.dirty}"
-        )
-    }
 }

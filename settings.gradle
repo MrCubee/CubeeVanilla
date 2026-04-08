@@ -1,1 +1,22 @@
+def modules = [
+        "core",
+        "nms"
+]
+
+modules.each {
+    var moduleName = ":cubee-vanilla-${it}"
+
+    if (it === 'nms') {
+        file(it).listFiles()?.findAll { it.isDirectory() && it !== "src" && it !== "bin" } ?.each {
+            var versionName = "${moduleName}-${it.name}"
+
+            include versionName
+            project(versionName).projectDir = file(it)
+        }
+    }
+    include moduleName
+    project(moduleName).projectDir = file(it)
+}
+
+
 rootProject.name = 'cubee-vanilla'

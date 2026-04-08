@@ -1,0 +1,16 @@
+dependencies {
+    compileOnly 'org.spigotmc:spigot-api:1.21.11-R0.2-SNAPSHOT'
+    compileOnly project(':cubee-vanilla-nms')
+}
+
+processResources {
+    def git = rootProject.ext.getGitInfo()
+
+    filesMatching('plugin.yml') {
+        expand(
+                name: 'Maze',
+                description: project.description,
+                version: "${project.version}+${git.branch}-${git.commit}${git.dirty}"
+        )
+    }
+}

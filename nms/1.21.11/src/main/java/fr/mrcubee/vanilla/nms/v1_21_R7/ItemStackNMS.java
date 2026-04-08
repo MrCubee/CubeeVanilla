@@ -1,4 +1,4 @@
-package fr.mrcubee.vanilla.nms;
+package fr.mrcubee.vanilla.nms.v1_21_R7;
 
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_21_R7.CraftWorld;
@@ -8,9 +8,10 @@ import org.bukkit.craftbukkit.v1_21_R7.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-public class ItemStackNMS {
+public class ItemStackNMS extends fr.mrcubee.vanilla.nms.ItemStackNMS {
 
-    public static boolean mineBlock(final Player player, final Block block, final ItemStack itemStack) {
+    @Override
+    protected boolean nmsMineBlock(final Player player, final Block block, final ItemStack itemStack) {
         final CraftPlayer craftPlayer;
         final CraftBlock craftBlock;
         final net.minecraft.world.item.ItemStack nmsItemStack;
