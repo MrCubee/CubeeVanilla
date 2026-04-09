@@ -17,7 +17,7 @@ public class ItemStackNMS {
         final Class<? extends ItemStackNMS> itemStackClass;
 
         try {
-            clazz =  Class.forName("fr.mrcubee.vanilla.nms." + NMS.CURRENT_VERSION + ".ItemStackNMS");
+            clazz =  Class.forName("fr.mrcubee.vanilla.nms." + NMS.getNMSVersion() + ".ItemStackNMS");
             itemStackClass = clazz.asSubclass(ItemStackNMS.class);
             return itemStackClass.getConstructor().newInstance();
         } catch (final Exception exception) {
@@ -28,7 +28,7 @@ public class ItemStackNMS {
     }
 
     public static boolean mineBlock(final Player player, final Block block, final ItemStack itemStack) {
-        return ItemStackNMS.ITEM_STACK_NMS.mineBlock(player, block, itemStack);
+        return ItemStackNMS.ITEM_STACK_NMS.nmsMineBlock(player, block, itemStack);
     }
 
 }

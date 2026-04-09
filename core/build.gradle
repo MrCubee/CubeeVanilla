@@ -8,7 +8,7 @@ processResources {
 
     filesMatching('plugin.yml') {
         expand(
-                name: 'Maze',
+                name: 'CubeeVanilla',
                 description: project.description,
                 version: "${project.version}+${git.branch}-${git.commit}${git.dirty}"
         )

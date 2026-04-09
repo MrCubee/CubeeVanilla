@@ -7,7 +7,7 @@ modules.each {
     var moduleName = ":cubee-vanilla-${it}"
 
     if (it === 'nms') {
-        file(it).listFiles()?.findAll { it.isDirectory() && it !== "src" && it !== "bin" } ?.each {
+        file(it).listFiles()?.findAll { it.isDirectory() && it.name.startsWith('v')  } ?.each {
             var versionName = "${moduleName}-${it.name}"
 
             include versionName
