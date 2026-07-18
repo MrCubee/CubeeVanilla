@@ -16,7 +16,7 @@ public class BlockNMS {
         final Class<? extends BlockNMS> blockClass;
 
         try {
-            clazz =  Class.forName("fr.mrcubee.vanilla.nms." + NMS.getNMSVersion() + ".ItemStackNMS");
+            clazz =  Class.forName("fr.mrcubee.vanilla.nms." + NMS.getNMSVersion() + ".BlockNMS");
             blockClass = clazz.asSubclass(BlockNMS.class);
             return blockClass.getConstructor().newInstance();
         } catch (final Exception exception) {

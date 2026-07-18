@@ -52,7 +52,7 @@ dependencies {
     implementation project(':cubee-vanilla-core')
     implementation project(':cubee-vanilla-nms')
     implementation project(':cubee-vanilla-nms-v1.21.11')
-    implementation project(':cubee-vanilla-nms-v26.1.1')
+    implementation project(':cubee-vanilla-nms-v26.1.2')
 }
 
 jar {

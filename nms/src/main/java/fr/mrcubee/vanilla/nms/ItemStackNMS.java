@@ -8,6 +8,7 @@ public class ItemStackNMS {
 
     private static final ItemStackNMS ITEM_STACK_NMS = getNMSInstance();
 
+
     protected boolean nmsMineBlock(final Player player, final Block block, final ItemStack itemStack) {
         return false;
     }

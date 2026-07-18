@@ -9,6 +9,7 @@ public class NMS {
 
         Bukkit.getLogger().info("Version: " + mcVersion);
         switch (mcVersion) {
+            case "26.1.2-R0.1-SNAPSHOT":
             case "26.1.1-R0.1-SNAPSHOT":
             case "26.1-R0.1-SNAPSHOT":
                 return "v26_1_R1";
